@@ -321,11 +321,10 @@ record di Changyun.
 
 ## Provarlo in Colab (esempio del dataset, o un video tuo)
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Alessandro1040/pianovam-quickstart/blob/main/pianovam_video2midi.ipynb)
-— il notebook è `pianovam_video2midi.ipynb`, nel repo pubblico
-[`pianovam-quickstart`](https://github.com/Alessandro1040/pianovam-quickstart), accanto a
-quello del dataset: si apre con un click e scegli un esempio con un indice (1..107), guardi il **video con l'audio
-originale**, e confronti il **MIDI registrato dal pianoforte** con quello **stimato dal
+Il notebook è [`pianovam_video2midi.ipynb`](https://github.com/Alessandro1040/pianovam-quickstart/blob/main/pianovam_video2midi.ipynb),
+nello stesso repo pubblico del notebook del dataset (il badge **Open in Colab** è in cima a
+questa pagina). Scegli un esempio con il suo indice (1..107): guardi il **video con l'audio
+originale** e confronti il **MIDI registrato dal pianoforte** con quello **stimato dal
 modello** — P/R/F1 a 50 ms, piano roll dei due MIDI uno sopra l'altro, e ascolto A/B
 sintetizzato con lo stesso strumento, così l'unica differenza che senti sono le note che
 il modello prende e quelle che si perde. Con `MODE = "upload"` carichi un video tuo:
