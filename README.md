@@ -185,6 +185,8 @@ gruppo tenuto fuori. Tre cose da leggere in questa tabella, in ordine di importa
 ```
 src/
   keys.py        layout degli 88 tasti, tasti neri, punteggio di allineamento, orientamento
+                 quanti tasti sono inquadrati: periodo dei tasti, deriva, tasto di partenza
+  track.py       inseguimento della tastiera fra i fotogrammi (flusso ottico; sperimentale)
   geometry.py    omografia dai 4 punti annotati, jitter di calibrazione, crop del riquadro
   video.py       video -> cache di strisce rettificate (blocchi da 512 frame)
   targets.py     TSV -> onset / tasto tenuto / rilascio / velocity
@@ -365,10 +367,21 @@ oggi non è utilizzabile per la trascrizione. La diagnosi è nei test
   video vero **non è** il rettangolo giusto (0,95 su una zona sbagliata contro
   0,56 su quella giusta).
 
-Il passo che serve è stimare il **periodo dei tasti** nell'immagine
-(autocorrelazione del profilo dei bordi verticali, poi comb-fit su 88 posizioni)
-invece di sperare che una griglia lo indovini. Finché non c'è, il modulo resta
-marcato sperimentale e il percorso supportato è `--quad` con i 4 angoli.
+La misura che mancava però **ora c'è**: `keys.estimate_key_span` ricava il periodo dei
+tasti dal profilo della banda dei neri (autocorrelazione, poi il picco più vicino a una
+griglia di candidati) e `keys.window_from_strips` la riassume su più fotogrammi in una
+`KeyWindow`: quanti tasti copre il quadrilatero, di quanto la tastiera si sposta nel
+video, da quale tasto parte. Su una registrazione a mano libera (primo piano) misura
+**23,0 tasti con punteggio 0,77, deriva −7,2 semitoni, primo tasto visibile D#**, e
+`scripts/predict.py` lo stampa e **avverte** quando l'inquadratura non copre gli 88
+tasti che il modello si aspetta, elencando i tasti da cui la tastiera può partire (per
+un D# visibile: D#1…D#5 — senza le note vere l'ottava resta indecidibile).
+
+Il pezzo che manca non è più la misura ma il fatto che la ricerca la **usi**:
+rettificato il candidato, il numero di tasti stimato dice di quanto il quadrilatero è
+largo rispetto a 88, e basta riscalare per chiudere il cerchio — è quello che annota il
+test `xfail` di `tests/test_detect.py`. Finché non c'è, il modulo resta marcato
+sperimentale e il percorso supportato è `--quad` con i 4 angoli.
 
 ## Limiti noti (onesti)
 
@@ -386,6 +399,12 @@ marcato sperimentale e il percorso supportato è `--quad` con i 4 angoli.
   sovrapposte sullo stesso tasto il modello vede un tasto solo.
 * **Scala di grigi**: si perde il colore (non serve per i tasti, aiuterebbe
   invece a separare la pelle dal legno: da provare in futuro).
+* **Camera che si muove**: `src/track.py` insegue la tastiera fra i fotogrammi
+  (flusso ottico sulla striscia rettificata) ed è **sperimentale**: con una camera
+  ferma la posa si sposta di 3,0 px in 60 fotogrammi (0,24 tasti), quindi
+  `tests/test_track.py::test_camera_ferma_non_deriva` è **rosso**, e il modulo non è
+  ancora collegato a `scripts/predict.py`. Il percorso supportato resta il
+  quadrilatero fisso.
 
 ## Cosa farei come passo successivo
 

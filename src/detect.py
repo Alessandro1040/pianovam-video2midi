@@ -86,8 +86,8 @@ def score_quad(frame: np.ndarray, quad: np.ndarray, out_w: int, out_h: int) -> f
     return keys.black_key_score(geometry.rectify(frame, matrix, (out_w, out_h)))
 
 
-MARGIN = 0.4        # lo stesso margine con cui sono costruite le strisce del dataset
-BLACK_FRAC = 0.64   # quota dell'altezza dei tasti occupata dai tasti neri
+MARGIN = keys.BAND_MARGIN         # lo stesso margine con cui sono costruite le strisce del dataset
+BLACK_FRAC = keys.BAND_BLACK_FRAC  # quota dell'altezza dei tasti occupata dai tasti neri
 
 
 def bands(
@@ -97,11 +97,13 @@ def bands(
 
     Le frazioni non sono inventate: misurate sulle strisce in cache. Nel profilo per
     riga della correlazione col disegno dei neri, le righe 0-26 sono piatte, le righe
-    27-71 hanno il disegno, le righe 72-95 tornano piatte.
+    27-71 hanno il disegno, le righe 72-95 tornano piatte. La fascia dei neri e' la
+    stessa che misura il passo (`keys.black_rows`), cosi' le soglie misurate valgono
+    per entrambi.
     """
     top = int(round(out_h * margin / (1.0 + margin)))
-    middle = top + int(round((out_h - top) * black_frac))
-    return slice(0, top), slice(top, middle), slice(middle, out_h)
+    black = keys.black_rows(out_h, margin, black_frac)
+    return slice(0, top), black, slice(black.stop, out_h)
 
 
 def column_profile(strip: np.ndarray) -> np.ndarray:
@@ -285,7 +287,13 @@ def detect(
 
 
 def key_width_px(quad: np.ndarray) -> float:
-    """Larghezza di un tasto in pixel dell'immagine: serve a misurare l'errore."""
+    """Larghezza di un tasto in pixel dell'immagine: serve a misurare l'errore.
+
+    Presuppone che il quadrilatero copra **tutti** gli 88 tasti: e' vero per i
+    quadrilateri del dataset (e per la ricerca della tastiera, che cerca proprio la
+    tastiera intera) e falso per un'inquadratura stretta, dove va usata la stima del
+    passo (`keys.estimate_key_span` con `keys.white_key_width`).
+    """
     top = np.linalg.norm(quad[1] - quad[0])
     bottom = np.linalg.norm(quad[2] - quad[3])
     return float(0.5 * (top + bottom) / keys.N_KEYS)

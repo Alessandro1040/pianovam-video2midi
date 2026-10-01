@@ -115,6 +115,8 @@ def main() -> None:
         video.build_cache(video_path, quad, cache_dir)
 
     samples = orient_samples(cache_dir)
+    fps = float(video.read_meta(cache_dir).get("fps", 60.0))
+    print(f"video a {fps:.0f} fps: la cache li conserva, quindi il MIDI va scritto a {fps:.0f} fps")
     if args.orient == "auto" and samples.shape[0]:
         input_flip = keys.detect_input_flip(samples)
         normal = float(np.mean([keys.black_key_score(frame) for frame in samples]))
@@ -123,6 +125,33 @@ def main() -> None:
     else:
         input_flip = args.orient == "flip"
     print(f"tastiera specchiata: {'si (la raddrizzo io)' if input_flip else 'no'}")
+
+    finestra = keys.window_from_strips(samples)
+    print(
+        f"tastiera inquadrata: {finestra.span:.1f} tasti (punteggio {finestra.score:.2f}), "
+        f"deriva {finestra.drift:+.1f} semitoni, prima classe {finestra.first_class} "
+        f"(margine {finestra.class_margin:.2f}, coerenza {finestra.residual:+.1f})"
+    )
+    # Il modello vuole la striscia di 88 tasti: se l'inquadratura ne copre altri, le
+    # colonne della striscia non sono tasti e le note escono con ottava e scala sbagliate.
+    if finestra.span > 0 and abs(finestra.span - keys.N_KEYS) > 2.0:
+        print(
+            f"  attenzione: l'inquadratura copre {finestra.span:.0f} tasti, non {keys.N_KEYS}: "
+            "la striscia che il modello si aspetta e' larga 88, quindi le note sarebbero sbagliate"
+        )
+        if finestra.trustworthy:
+            candidate = ", ".join(keys.note_name(note) for note in finestra.candidates())
+            print(
+                f"  la tastiera vista e' lunga {finestra.union:.0f} semitoni e il primo tasto visibile "
+                f"puo' essere {candidate}: il piu' probabile e' {keys.note_name(finestra.central())} "
+                "(il piu' vicino al centro della tastiera). Per sciogliere l'ottava servono un video "
+                "che mostri la tastiera intera o le note vere"
+            )
+    if abs(finestra.drift) > 2.0:
+        print(
+            f"  attenzione: la tastiera si sposta di {finestra.drift:+.1f} semitoni nel video, "
+            "quindi con un quadrilatero fisso la striscia esce dall'allineamento"
+        )
 
     device = "mps" if torch.backends.mps.is_available() and args.device == "auto" else args.device
     if args.device != "auto":
@@ -149,11 +178,11 @@ def main() -> None:
     notes = decode.notes_from_heads(
         probabilities, threshold_onset=threshold, min_distance=args.min_distance
     )
-    decode.notes_to_midi(notes, out_path)
+    decode.notes_to_midi(notes, out_path, fps=fps)
     frames = probabilities["onset"].shape[0]
-    print(f"{len(notes)} note in {frames / 60:.1f} s di video ({time.time() - started:.0f} s di calcolo)")
+    print(f"{len(notes)} note in {frames / fps:.1f} s di video ({time.time() - started:.0f} s di calcolo)")
     if notes:
-        lengths = np.array([note.end_frame - note.start_frame for note in notes]) / 60.0
+        lengths = np.array([note.end_frame - note.start_frame for note in notes]) / fps
         lowest = min(keys.index_to_note(note.key) for note in notes)
         highest = max(keys.index_to_note(note.key) for note in notes)
         print(f"durata media nota {lengths.mean() * 1000:.0f} ms, la piu' lunga {lengths.max():.2f} s")

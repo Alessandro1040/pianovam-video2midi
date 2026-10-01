@@ -107,14 +107,16 @@ def test_errore_zero_su_se_stesso():
     assert detect.corner_error_keys(rect, rect) == pytest.approx(0.0)
 
 
-@pytest.mark.xfail(reason="senza punto di partenza la scala orizzontale va azzeccata allo 0.5%: serve il passo periodo dei tasti")
+@pytest.mark.xfail(reason="la scala orizzontale va azzeccata allo 0.5%: la stima del passo esiste (keys.estimate_key_span), ma detect.detect non la usa ancora")
 def test_ricerca_alla_cieca_da_sola_non_e_ancora_affidabile():
     """Documenta un limite noto: senza indizio la griglia grossolana non basta.
 
     Non e' un test che passa, e' un promemoria: la griglia trova una regione con il
-    disegno dei tasti, ma sbaglia la scala di parecchi tasti. Per chiudere il cerchio
-    serve stimare il *periodo* dei tasti nell'immagine (autocorrelazione del profilo
-    dei bordi verticali) invece di sperare che una griglia lo indovini.
+    disegno dei tasti, ma sbaglia la scala di parecchi tasti. Il pezzo che manca non e'
+    piu' la misura del periodo -- quella c'e' ed e' validata (`keys.estimate_key_span`
+    sui tasti coperti, `keys.consensus_span` fra piu' frame) -- ma il fatto che la
+    ricerca la usi: rettificato il candidato, il numero di tasti stimato dice di quanto
+    il quadrilatero e' largo rispetto a 88, e basta riscalare per chiudere il cerchio.
     """
     rect = np.array([[220, 430], [1750, 400], [1820, 700], [160, 720]], dtype=np.float32)
     frame = place(keyboard_image(), geometry.expand_top(rect, detect.MARGIN), (1080, 1920))
