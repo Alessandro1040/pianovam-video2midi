@@ -1,0 +1,2 @@
+epoch,step,loss,onset,frame,offset,velocity,lr,seconds
+0,50,0.21416,0.07933,0.21431,0.03464,0.10354,0.001700,132.9

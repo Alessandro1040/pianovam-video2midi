@@ -1,0 +1,9 @@
+# Dipendenze del progetto (testate su macOS arm64, Python 3.14, torch 2.14)
+torch>=2.4
+numpy>=1.26
+scipy>=1.11
+av>=12.0                # decodifica/incodifica video (ffmpeg)
+opencv-python>=4.9      # warp prospettico
+pretty_midi>=0.2.10     # scrittura dei file MIDI
+huggingface_hub>=0.23   # download del dataset PianoVAM
+pytest>=8.0

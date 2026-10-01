@@ -1,0 +1,17 @@
+# dataset e cache: stanno su Hugging Face (PianoVAM/PianoVAM_v1), in locale pesano centinaia di MB
+data/
+logs/
+dist/
+
+# output pesanti (immagini, cache, wav): restano in locale, i MIDI di esempio invece si'
+out/*
+!out/*.mid
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# macOS
+.DS_Store

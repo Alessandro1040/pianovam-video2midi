@@ -1,0 +1,28 @@
+{
+  "raw": "data/raw",
+  "cache": "data/cache",
+  "out": "runs/m6_2ch",
+  "train_records": null,
+  "val_records": [
+    "2024-02-15_21-33-36",
+    "2024-09-02_12-45-12"
+  ],
+  "epochs": 10,
+  "steps_per_epoch": 400,
+  "batch_size": 8,
+  "clip_frames": 64,
+  "temporal_radius": 15,
+  "lr": 0.002,
+  "weight_decay": 0.0001,
+  "warmup_steps": 60,
+  "device": "mps",
+  "seed": 0,
+  "val_windows": 12,
+  "log_every": 50,
+  "init_from": null,
+  "priors": {
+    "onset": 0.0033143939393939395,
+    "frame": 0.011703953598484848,
+    "offset": 0.0011097301136363637
+  }
+}
